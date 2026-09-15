@@ -3,7 +3,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>AI Object Detector</title>
 
@@ -17,30 +18,29 @@
             background: #050505;
             color: white;
             font-family: Arial, sans-serif;
-            min-height: 100vh;
         }
 
         h1 {
             text-align: center;
             font-size: 22px;
-            margin: 20px 0;
+            margin: 20px;
         }
 
         #camera {
             width: 100%;
             height: 65vh;
             object-fit: cover;
-            display: none;
             background: #111;
+            display: none;
         }
 
         .panel {
             padding: 20px;
         }
 
-        button {
+        #startCamera {
             width: 100%;
-            padding: 16px;
+            padding: 17px;
             border: 0;
             border-radius: 12px;
             background: white;
@@ -49,8 +49,8 @@
             font-weight: bold;
         }
 
-        button:disabled {
-            opacity: 0.5;
+        #startCamera:disabled {
+            opacity: .5;
         }
 
         #status {
@@ -61,14 +61,14 @@
 
         #result {
             text-align: center;
-            font-size: 26px;
+            font-size: 28px;
             font-weight: bold;
-            margin-top: 15px;
         }
 
         #confidence {
-            font-size: 16px;
+            text-align: center;
             color: #aaa;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -86,45 +86,250 @@
 
     <div class="panel">
 
-        <button id="cameraButton">
+        <button id="startCamera">
             📷 IZINKAN KAMERA
         </button>
 
         <div id="status">
-            Kamera belum diaktifkan
+            Kamera belum aktif
         </div>
 
         <div id="result"></div>
+
         <div id="confidence"></div>
 
     </div>
 
 
-    <!-- =================================================
-         1. TensorFlow.js
-         HARUS DIMUAT TERLEBIH DAHULU
-    ================================================== -->
+    <!--
+        PENTING:
+        Jangan gunakan library @tensorflow/tfjs
+        atau build CommonJS yang menyebabkan
+        "exports is not defined".
 
-    <script
-        src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js">
+        Teachable Machine Image sudah menangani
+        dependensi yang diperlukan.
+    -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+
+
+    <script>
+
+        // =================================================
+        // ELEMENT
+        // =================================================
+
+        const camera =
+            document.getElementById("camera");
+
+        const startButton =
+            document.getElementById("startCamera");
+
+        const status =
+            document.getElementById("status");
+
+        const result =
+            document.getElementById("result");
+
+        const confidence =
+            document.getElementById("confidence");
+
+
+        let model = null;
+        let stream = null;
+
+
+        // =================================================
+        // CEK ELEMENT
+        // =================================================
+
+        if (!camera ||
+            !startButton ||
+            !status ||
+            !result ||
+            !confidence) {
+
+            console.error(
+                "Element HTML tidak ditemukan."
+            );
+
+        }
+
+
+        // =================================================
+        // BUTTON
+        // =================================================
+
+        startButton.addEventListener(
+            "click",
+            startAI
+        );
+
+
+        // =================================================
+        // START AI
+        // =================================================
+
+        async function startAI() {
+
+            try {
+
+                startButton.disabled = true;
+
+                status.textContent =
+                    "📷 Meminta izin kamera...";
+
+
+                // =========================================
+                // REQUEST CAMERA PERMISSION
+                // =========================================
+
+                stream =
+                    await navigator.mediaDevices
+                    .getUserMedia({
+
+                        video: {
+                            facingMode: {
+                                ideal: "environment"
+                            }
+                        },
+
+                        audio: false
+
+                    });
+
+
+                // =========================================
+                // CAMERA
+                // =========================================
+
+                camera.srcObject = stream;
+
+                camera.style.display = "block";
+
+                await camera.play();
+
+
+                status.textContent =
+                    "🟢 Kamera aktif";
+
+
+                // =========================================
+                // LOAD MODEL
+                // =========================================
+
+                status.textContent =
+                    "🧠 Memuat model...";
+
+
+                model =
+                    await tmImage.load(
+
+                        "./model/model.json",
+
+                        "./model/metadata.json"
+
+                    );
+
+
+                status.textContent =
+                    "🟢 AI siap mendeteksi";
+
+
+                startButton.textContent =
+                    "🟢 KAMERA AKTIF";
+
+
+                // =========================================
+                // START DETECTION
+                // =========================================
+
+                detect();
+
+
+            } catch (error) {
+
+                console.error(
+                    "AI CAMERA ERROR:",
+                    error
+                );
+
+
+                startButton.disabled = false;
+
+
+                status.innerHTML =
+                    "❌ " +
+                    error.name;
+
+
+                result.textContent =
+                    error.message;
+
+            }
+
+        }
+
+
+        // =================================================
+        // DETECTION
+        // =================================================
+
+        async function detect() {
+
+            if (!model) return;
+
+
+            try {
+
+                const predictions =
+                    await model.predict(camera);
+
+
+                predictions.sort(
+                    (a, b) =>
+                        b.probability -
+                        a.probability
+                );
+
+
+                const best =
+                    predictions[0];
+
+
+                const percent =
+                    (
+                        best.probability *
+                        100
+                    ).toFixed(1);
+
+
+                result.textContent =
+                    best.className;
+
+
+                confidence.textContent =
+                    percent + "%";
+
+
+            } catch (error) {
+
+                console.error(
+                    "Prediction error:",
+                    error
+                );
+
+            }
+
+
+            requestAnimationFrame(
+                detect
+            );
+
+        }
+
     </script>
-
-
-    <!-- =================================================
-         2. Teachable Machine Image
-         HARUS SETELAH TensorFlow.js
-    ================================================== -->
-
-    <script
-        src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js">
-    </script>
-
-
-    <!-- =================================================
-         3. SCRIPT KITA
-    ================================================== -->
-
-    <script src="./script.js"></script>
 
 </body>
 </html>
