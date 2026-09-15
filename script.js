@@ -1,7 +1,7 @@
-const MODEL_URL = "./model/";
+const MODEL_URL = "model/";
 
 let model;
-let webcam;
+let stream;
 
 const camera = document.getElementById("camera");
 const startButton = document.getElementById("startButton");
@@ -13,67 +13,127 @@ startButton.addEventListener("click", startAI);
 async function startAI() {
     try {
         startButton.disabled = true;
+
+        // =========================
+        // 1. CEK SECURE CONTEXT
+        // =========================
+
+        if (!window.isSecureContext) {
+            throw new Error(
+                "Website tidak menggunakan HTTPS / secure context."
+            );
+        }
+
+        if (!navigator.mediaDevices) {
+            throw new Error(
+                "navigator.mediaDevices tidak tersedia di browser."
+            );
+        }
+
         statusText.textContent = "Memuat model AI...";
 
-        // Load model Teachable Machine
+        // =========================
+        // 2. LOAD MODEL
+        // =========================
+
         const modelURL = MODEL_URL + "model.json";
         const metadataURL = MODEL_URL + "metadata.json";
 
-        model = await tmImage.load(modelURL, metadataURL);
+        model = await tmImage.load(
+            modelURL,
+            metadataURL
+        );
 
-        statusText.textContent = "Meminta izin kamera...";
+        statusText.textContent =
+            "Model berhasil dimuat. Meminta kamera...";
 
-        // Meminta akses kamera
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: {
-                    ideal: "environment"
-                },
-                width: {
-                    ideal: 1280
-                },
-                height: {
-                    ideal: 720
-                }
-            },
+        // =========================
+        // 3. REQUEST CAMERA
+        // =========================
+
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
             audio: false
         });
+
+        // =========================
+        // 4. TAMPILKAN CAMERA
+        // =========================
 
         camera.srcObject = stream;
 
         await camera.play();
 
-        statusText.textContent = "AI aktif";
+        statusText.textContent =
+            "🟢 Kamera aktif — AI sedang mendeteksi";
+
+        startButton.textContent =
+            "Kamera Aktif";
 
         predict();
 
     } catch (error) {
-        console.error(error);
 
-        statusText.textContent =
-            "Gagal mengakses kamera atau model.";
+        console.error("CAMERA ERROR:", error);
 
         startButton.disabled = false;
 
+        statusText.innerHTML =
+            "❌ <b>" +
+            error.name +
+            "</b><br>" +
+            error.message;
+
+        /*
+        Error yang mungkin:
+
+        NotAllowedError
+        = izin kamera ditolak / diblokir
+
+        NotFoundError
+        = kamera tidak ditemukan
+
+        NotReadableError
+        = kamera sedang digunakan aplikasi lain
+
+        OverconstrainedError
+        = konfigurasi kamera tidak cocok
+
+        SecurityError
+        = akses kamera diblokir browser
+
+        TypeError
+        = mediaDevices tidak tersedia
+        */
+
         alert(
-            "Kamera tidak bisa digunakan.\n\n" +
-            "Pastikan izin kamera diberikan dan website menggunakan HTTPS atau localhost."
+            "Camera Error\n\n" +
+            error.name +
+            "\n\n" +
+            error.message
         );
     }
 }
 
 
+// ========================================
+// PREDICTION
+// ========================================
+
 async function predict() {
 
-    if (!model) return;
+    if (!model || !camera.srcObject) {
+        return;
+    }
 
     try {
 
-        const predictions = await model.predict(camera);
+        const predictions =
+            await model.predict(camera);
 
-        // Urutkan dari confidence tertinggi
-        predictions.sort((a, b) =>
-            b.probability - a.probability
+        predictions.sort(
+            (a, b) =>
+                b.probability - a.probability
         );
 
         const best = predictions[0];
@@ -81,7 +141,6 @@ async function predict() {
         const confidence =
             (best.probability * 100).toFixed(1);
 
-        // Hasil terbaik
         let html = `
             <div class="best">
                 ${best.className}
@@ -90,7 +149,6 @@ async function predict() {
             </div>
         `;
 
-        // Semua class
         for (const prediction of predictions) {
 
             const percent =
@@ -100,8 +158,13 @@ async function predict() {
                 <div class="prediction">
 
                     <div class="label">
-                        <span>${prediction.className}</span>
-                        <span>${percent}%</span>
+                        <span>
+                            ${prediction.className}
+                        </span>
+
+                        <span>
+                            ${percent}%
+                        </span>
                     </div>
 
                     <div class="bar">
@@ -118,9 +181,13 @@ async function predict() {
         predictionsBox.innerHTML = html;
 
     } catch (error) {
-        console.error(error);
+
+        console.error(
+            "PREDICTION ERROR:",
+            error
+        );
     }
 
-    // Prediksi terus-menerus
     requestAnimationFrame(predict);
 }
+
