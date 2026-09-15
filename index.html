@@ -1,164 +1,1165 @@
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
 
-    <title>AI Object Detector</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta name="theme-color" content="#050505">
+
+    <title>Frost AI Vision</title>
+
+
+    <!-- =====================================================
+         STYLE
+    ====================================================== -->
 
     <style>
+
         * {
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
+
+        html,
         body {
             margin: 0;
-            background: #050505;
-            color: white;
-            font-family: Arial, sans-serif;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #18202b 0%,
+                    #080a0d 45%,
+                    #030303 100%
+                );
+
+            color: #fff;
+
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
         }
 
-        h1 {
-            text-align: center;
-            font-size: 22px;
-            margin: 20px;
+
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
         }
+
+
+        /* ==================================================
+           HEADER
+        ================================================== */
+
+        header {
+
+            position: sticky;
+            top: 0;
+
+            z-index: 20;
+
+            padding:
+                calc(14px + env(safe-area-inset-top))
+                18px
+                14px;
+
+            background:
+                rgba(5, 7, 10, .78);
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            border-bottom:
+                1px solid rgba(255,255,255,.08);
+        }
+
+
+        .header-row {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content:
+                space-between;
+        }
+
+
+        .brand {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+        }
+
+
+        .logo {
+
+            width: 38px;
+            height: 38px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ffffff,
+                    #9ea8b5
+                );
+
+            color: #050505;
+
+            font-size: 18px;
+
+            box-shadow:
+                0 0 25px
+                rgba(255,255,255,.12);
+        }
+
+
+        .brand-text strong {
+
+            display: block;
+
+            font-size: 15px;
+
+            letter-spacing: .5px;
+        }
+
+
+        .brand-text span {
+
+            display: block;
+
+            margin-top: 2px;
+
+            font-size: 11px;
+
+            color: #7e8792;
+        }
+
+
+        .status-pill {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            padding: 7px 10px;
+
+            border-radius: 999px;
+
+            background:
+                rgba(255,255,255,.06);
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            font-size: 11px;
+
+            color: #aeb6c0;
+        }
+
+
+        .status-dot {
+
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #777;
+
+        }
+
+
+        .status-dot.active {
+
+            background: #62ff9a;
+
+            box-shadow:
+                0 0 10px
+                rgba(98,255,154,.8);
+        }
+
+
+        /* ==================================================
+           CAMERA
+        ================================================== */
+
+        .camera-card {
+
+            position: relative;
+
+            width: 100%;
+
+            aspect-ratio: 16 / 10;
+
+            min-height: 270px;
+
+            overflow: hidden;
+
+            background: #000;
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,.08);
+        }
+
 
         #camera {
+
             width: 100%;
-            height: 65vh;
+            height: 100%;
+
             object-fit: cover;
-            background: #111;
-            display: none;
+
+            display: block;
+
+            background: #000;
+
+            transform:
+                translateZ(0);
         }
 
-        .panel {
-            padding: 20px;
+
+        /* CAMERA DARK GRADIENT */
+
+        .camera-card::after {
+
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            pointer-events: none;
+
+            background:
+
+                linear-gradient(
+                    to bottom,
+                    rgba(0,0,0,.42),
+                    transparent 25%,
+                    transparent 60%,
+                    rgba(0,0,0,.72)
+                );
         }
+
+
+        /* ==================================================
+           CAMERA HUD
+        ================================================== */
+
+        .camera-top {
+
+            position: absolute;
+
+            top: 14px;
+            left: 14px;
+            right: 14px;
+
+            z-index: 5;
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            pointer-events: none;
+        }
+
+
+        .hud {
+
+            padding: 7px 10px;
+
+            border-radius: 8px;
+
+            background:
+                rgba(0,0,0,.5);
+
+            border:
+                1px solid
+                rgba(255,255,255,.1);
+
+            backdrop-filter:
+                blur(8px);
+
+            font-size: 11px;
+
+            color: #e8e8e8;
+        }
+
+
+        /* CAMERA CORNERS */
+
+        .corner {
+
+            position: absolute;
+
+            width: 35px;
+            height: 35px;
+
+            z-index: 4;
+
+            pointer-events: none;
+        }
+
+
+        .corner.tl {
+
+            top: 55px;
+            left: 20px;
+
+            border-top:
+                2px solid rgba(255,255,255,.8);
+
+            border-left:
+                2px solid rgba(255,255,255,.8);
+        }
+
+
+        .corner.tr {
+
+            top: 55px;
+            right: 20px;
+
+            border-top:
+                2px solid rgba(255,255,255,.8);
+
+            border-right:
+                2px solid rgba(255,255,255,.8);
+        }
+
+
+        .corner.bl {
+
+            bottom: 30px;
+            left: 20px;
+
+            border-bottom:
+                2px solid rgba(255,255,255,.8);
+
+            border-left:
+                2px solid rgba(255,255,255,.8);
+        }
+
+
+        .corner.br {
+
+            bottom: 30px;
+            right: 20px;
+
+            border-bottom:
+                2px solid rgba(255,255,255,.8);
+
+            border-right:
+                2px solid rgba(255,255,255,.8);
+        }
+
+
+        /* ==================================================
+           START SCREEN
+        ================================================== */
+
+        .camera-start {
+
+            position: absolute;
+
+            inset: 0;
+
+            z-index: 10;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 14px;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(30,36,45,.9),
+                    rgba(0,0,0,.94)
+                );
+        }
+
+
+        .camera-icon {
+
+            width: 70px;
+            height: 70px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 22px;
+
+            background:
+                rgba(255,255,255,.08);
+
+            border:
+                1px solid
+                rgba(255,255,255,.12);
+
+            font-size: 30px;
+        }
+
+
+        .camera-start h2 {
+
+            margin: 0;
+
+            font-size: 20px;
+        }
+
+
+        .camera-start p {
+
+            margin: 0;
+
+            max-width: 280px;
+
+            text-align: center;
+
+            color: #8d96a2;
+
+            font-size: 13px;
+
+            line-height: 1.5;
+        }
+
 
         #startCamera {
-            width: 100%;
-            padding: 17px;
+
+            margin-top: 5px;
+
+            padding: 13px 22px;
+
             border: 0;
+
             border-radius: 12px;
-            background: white;
-            color: black;
-            font-size: 17px;
-            font-weight: bold;
+
+            background: #fff;
+
+            color: #000;
+
+            font-weight: 700;
+
+            font-size: 14px;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 8px 30px
+                rgba(255,255,255,.1);
         }
 
-        #startCamera:disabled {
-            opacity: .5;
+
+        #startCamera:active {
+
+            transform:
+                scale(.97);
         }
 
-        #status {
-            text-align: center;
-            margin: 15px 0;
-            color: #aaa;
+
+        /* ==================================================
+           MAIN
+        ================================================== */
+
+        main {
+
+            padding: 15px;
+
+            max-width: 850px;
+
+            margin: auto;
         }
 
-        #result {
-            text-align: center;
-            font-size: 28px;
-            font-weight: bold;
+
+        /* ==================================================
+           BEST RESULT
+        ================================================== */
+
+        .best-card {
+
+            padding: 17px;
+
+            margin-bottom: 15px;
+
+            border-radius: 18px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.09),
+                    rgba(255,255,255,.035)
+                );
+
+            border:
+                1px solid
+                rgba(255,255,255,.1);
+
+            box-shadow:
+                0 12px 40px
+                rgba(0,0,0,.2);
         }
 
-        #confidence {
-            text-align: center;
-            color: #aaa;
+
+        .best-label {
+
+            color: #7f8995;
+
+            font-size: 11px;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing: 1.4px;
+        }
+
+
+        .best-result {
+
+            display: flex;
+
+            align-items: end;
+
+            justify-content:
+                space-between;
+
+            gap: 10px;
+
             margin-top: 5px;
         }
+
+
+        #bestClass {
+
+            font-size: 30px;
+
+            font-weight: 800;
+
+            letter-spacing: -.8px;
+        }
+
+
+        #bestPercent {
+
+            font-size: 20px;
+
+            color: #bfc7d0;
+
+            font-weight: 700;
+        }
+
+
+        /* ==================================================
+           ALL PREDICTIONS
+        ================================================== */
+
+        .section-title {
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            align-items: center;
+
+            margin:
+                5px
+                3px
+                10px;
+        }
+
+
+        .section-title strong {
+
+            font-size: 15px;
+        }
+
+
+        .section-title span {
+
+            color: #6f7883;
+
+            font-size: 11px;
+        }
+
+
+        .predictions {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 9px;
+        }
+
+
+        .prediction {
+
+            padding: 12px;
+
+            border-radius: 13px;
+
+            background:
+                rgba(255,255,255,.045);
+
+            border:
+                1px solid
+                rgba(255,255,255,.055);
+
+            transition:
+                .2s ease;
+        }
+
+
+        .prediction.top {
+
+            background:
+                rgba(255,255,255,.09);
+
+            border-color:
+                rgba(255,255,255,.16);
+
+            transform:
+                translateY(-1px);
+        }
+
+
+        .prediction-head {
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            align-items: center;
+
+            margin-bottom: 7px;
+        }
+
+
+        .class-name {
+
+            font-size: 13px;
+
+            font-weight: 600;
+        }
+
+
+        .class-percent {
+
+            font-size: 12px;
+
+            color: #aeb6c0;
+
+            font-variant-numeric:
+                tabular-nums;
+        }
+
+
+        .bar {
+
+            width: 100%;
+
+            height: 7px;
+
+            overflow: hidden;
+
+            border-radius: 99px;
+
+            background:
+                rgba(255,255,255,.08);
+        }
+
+
+        .bar-fill {
+
+            height: 100%;
+
+            width: 0%;
+
+            border-radius: 99px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #777,
+                    #fff
+                );
+
+            transition:
+                width .18s ease;
+        }
+
+
+        .prediction.top .bar-fill {
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #fff,
+                    #b8c0ca
+                );
+
+            box-shadow:
+                0 0 12px
+                rgba(255,255,255,.3);
+        }
+
+
+        /* ==================================================
+           FOOTER
+        ================================================== */
+
+        footer {
+
+            padding:
+                20px
+                15px
+                calc(25px + env(safe-area-inset-bottom));
+
+            text-align: center;
+
+            color: #555e69;
+
+            font-size: 10px;
+        }
+
+
+        /* ==================================================
+           MOBILE
+        ================================================== */
+
+        @media (max-width: 600px) {
+
+            .camera-card {
+
+                aspect-ratio: 4 / 3;
+
+                min-height: 300px;
+            }
+
+
+            #bestClass {
+
+                font-size: 26px;
+            }
+
+        }
+
+
+        /* ==================================================
+           DESKTOP
+        ================================================== */
+
+        @media (min-width: 900px) {
+
+            .camera-card {
+
+                margin-top: 15px;
+
+                border-radius: 20px;
+
+                border:
+                    1px solid
+                    rgba(255,255,255,.08);
+            }
+
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
-    <h1>AI Object Detector</h1>
 
-    <video
-        id="camera"
-        autoplay
-        muted
-        playsinline>
-    </video>
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
 
-    <div class="panel">
+    <header>
 
-        <button id="startCamera">
-            📷 IZINKAN KAMERA
-        </button>
+        <div class="header-row">
 
-        <div id="status">
-            Kamera belum aktif
+            <div class="brand">
+
+                <div class="logo">
+                    AI
+                </div>
+
+                <div class="brand-text">
+
+                    <strong>
+                        Frost AI Vision
+                    </strong>
+
+                    <span>
+                        Teachable Machine
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="status-pill">
+
+                <span
+                    id="statusDot"
+                    class="status-dot">
+                </span>
+
+                <span id="statusText">
+                    OFFLINE
+                </span>
+
+            </div>
+
         </div>
 
-        <div id="result"></div>
-
-        <div id="confidence"></div>
-
-    </div>
+    </header>
 
 
-    <!--
-        PENTING:
-        Jangan gunakan library @tensorflow/tfjs
-        atau build CommonJS yang menyebabkan
-        "exports is not defined".
+    <!-- =====================================================
+         CAMERA
+    ====================================================== -->
 
-        Teachable Machine Image sudah menangani
-        dependensi yang diperlukan.
-    -->
+    <section class="camera-card">
 
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 
+        <video
+            id="camera"
+            autoplay
+            muted
+            playsinline>
+        </video>
+
+
+        <!-- HUD -->
+
+        <div class="camera-top">
+
+            <div class="hud">
+                AI CAMERA
+            </div>
+
+            <div
+                class="hud"
+                id="fps">
+                -- FPS
+            </div>
+
+        </div>
+
+
+        <!-- CORNERS -->
+
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+
+
+        <!-- START -->
+
+        <div
+            id="cameraStart"
+            class="camera-start">
+
+            <div class="camera-icon">
+                📷
+            </div>
+
+            <h2>
+                Aktifkan Kamera
+            </h2>
+
+            <p>
+                Izinkan akses kamera untuk
+                menjalankan AI object classifier.
+            </p>
+
+            <button id="startCamera">
+                IZINKAN KAMERA
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main>
+
+
+        <!-- BEST -->
+
+        <section class="best-card">
+
+            <div class="best-label">
+                Prediksi Terkuat
+            </div>
+
+
+            <div class="best-result">
+
+                <div id="bestClass">
+                    -
+                </div>
+
+                <div id="bestPercent">
+                    0%
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ALL -->
+
+        <div class="section-title">
+
+            <strong>
+                Semua Class
+            </strong>
+
+            <span>
+                REALTIME
+            </span>
+
+        </div>
+
+
+        <section
+            id="predictions"
+            class="predictions">
+        </section>
+
+
+    </main>
+
+
+    <footer>
+        AI Vision • TensorFlow.js • Teachable Machine
+    </footer>
+
+
+    <!-- =====================================================
+         TEACHABLE MACHINE
+    ====================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
+
+
+    <!-- =====================================================
+         APP
+    ====================================================== -->
 
     <script>
 
-        // =================================================
-        // ELEMENT
-        // =================================================
+        const MODEL_URL =
+            "./model/";
+
+
+        const CLASSES = [
+
+            "Gelas",
+            "Botol",
+            "Ponsel",
+            "Human",
+            "Computer",
+            "Meja",
+            "Kursi",
+            "Sepeda Motor",
+            "Buku",
+            "Mobil",
+            "Kipas Angin"
+
+        ];
+
 
         const camera =
-            document.getElementById("camera");
+            document.getElementById(
+                "camera"
+            );
+
 
         const startButton =
-            document.getElementById("startCamera");
+            document.getElementById(
+                "startCamera"
+            );
 
-        const status =
-            document.getElementById("status");
 
-        const result =
-            document.getElementById("result");
+        const cameraStart =
+            document.getElementById(
+                "cameraStart"
+            );
 
-        const confidence =
-            document.getElementById("confidence");
+
+        const statusText =
+            document.getElementById(
+                "statusText"
+            );
+
+
+        const statusDot =
+            document.getElementById(
+                "statusDot"
+            );
+
+
+        const bestClass =
+            document.getElementById(
+                "bestClass"
+            );
+
+
+        const bestPercent =
+            document.getElementById(
+                "bestPercent"
+            );
+
+
+        const predictionsBox =
+            document.getElementById(
+                "predictions"
+            );
+
+
+        const fpsText =
+            document.getElementById(
+                "fps"
+            );
 
 
         let model = null;
+
         let stream = null;
 
+        let lastFrame = performance.now();
+
+        let frames = 0;
+
 
         // =================================================
-        // CEK ELEMENT
+        // CREATE ALL CLASS BARS
         // =================================================
 
-        if (!camera ||
-            !startButton ||
-            !status ||
-            !result ||
-            !confidence) {
+        function createPredictionBars() {
 
-            console.error(
-                "Element HTML tidak ditemukan."
+            predictionsBox.innerHTML = "";
+
+
+            CLASSES.forEach(
+                (className, index) => {
+
+                    const item =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    item.className =
+                        "prediction";
+
+
+                    item.dataset.index =
+                        index;
+
+
+                    item.innerHTML = `
+
+                        <div
+                            class="prediction-head">
+
+                            <span
+                                class="class-name">
+
+                                ${className}
+
+                            </span>
+
+                            <span
+                                class="class-percent"
+                                id="percent-${index}">
+
+                                0.0%
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="bar">
+
+                            <div
+                                class="bar-fill"
+                                id="bar-${index}">
+                            </div>
+
+                        </div>
+
+                    `;
+
+
+                    predictionsBox.appendChild(
+                        item
+                    );
+
+                }
             );
 
         }
 
 
+        createPredictionBars();
+
+
         // =================================================
-        // BUTTON
+        // CAMERA
         // =================================================
 
         startButton.addEventListener(
@@ -167,32 +1168,42 @@
         );
 
 
-        // =================================================
-        // START AI
-        // =================================================
-
         async function startAI() {
 
             try {
 
-                startButton.disabled = true;
-
-                status.textContent =
-                    "📷 Meminta izin kamera...";
+                startButton.disabled =
+                    true;
 
 
-                // =========================================
-                // REQUEST CAMERA PERMISSION
-                // =========================================
+                statusText.textContent =
+                    "CAMERA";
+
+
+                // -----------------------------------------
+                // REQUEST CAMERA
+                // -----------------------------------------
 
                 stream =
-                    await navigator.mediaDevices
+                    await navigator
+                    .mediaDevices
                     .getUserMedia({
 
                         video: {
+
                             facingMode: {
-                                ideal: "environment"
+                                ideal:
+                                    "environment"
+                            },
+
+                            width: {
+                                ideal: 1280
+                            },
+
+                            height: {
+                                ideal: 720
                             }
+
                         },
 
                         audio: false
@@ -200,72 +1211,90 @@
                     });
 
 
-                // =========================================
-                // CAMERA
-                // =========================================
+                camera.srcObject =
+                    stream;
 
-                camera.srcObject = stream;
-
-                camera.style.display = "block";
 
                 await camera.play();
 
 
-                status.textContent =
-                    "🟢 Kamera aktif";
+                // -----------------------------------------
+                // UI
+                // -----------------------------------------
+
+                cameraStart.style.display =
+                    "none";
 
 
-                // =========================================
+                statusText.textContent =
+                    "LOADING AI";
+
+
+                statusDot.classList.add(
+                    "active"
+                );
+
+
+                // -----------------------------------------
                 // LOAD MODEL
-                // =========================================
+                // -----------------------------------------
 
-                status.textContent =
-                    "🧠 Memuat model...";
+                if (
+                    typeof tmImage ===
+                    "undefined"
+                ) {
+
+                    throw new Error(
+                        "Teachable Machine library gagal dimuat."
+                    );
+
+                }
 
 
                 model =
                     await tmImage.load(
 
-                        "./model/model.json",
+                        MODEL_URL +
+                        "model.json",
 
-                        "./model/metadata.json"
+                        MODEL_URL +
+                        "metadata.json"
 
                     );
 
 
-                status.textContent =
-                    "🟢 AI siap mendeteksi";
+                statusText.textContent =
+                    "AI ONLINE";
 
 
-                startButton.textContent =
-                    "🟢 KAMERA AKTIF";
-
-
-                // =========================================
-                // START DETECTION
-                // =========================================
-
-                detect();
+                startDetection();
 
 
             } catch (error) {
 
                 console.error(
-                    "AI CAMERA ERROR:",
                     error
                 );
 
 
-                startButton.disabled = false;
+                statusText.textContent =
+                    "ERROR";
 
 
-                status.innerHTML =
-                    "❌ " +
-                    error.name;
+                statusDot.classList.remove(
+                    "active"
+                );
 
 
-                result.textContent =
-                    error.message;
+                startButton.disabled =
+                    false;
+
+
+                alert(
+                    error.name +
+                    "\n\n" +
+                    error.message
+                );
 
             }
 
@@ -276,7 +1305,7 @@
         // DETECTION
         // =================================================
 
-        async function detect() {
+        async function startDetection() {
 
             if (!model) return;
 
@@ -284,8 +1313,14 @@
             try {
 
                 const predictions =
-                    await model.predict(camera);
+                    await model.predict(
+                        camera
+                    );
 
+
+                // -----------------------------------------
+                // SORT
+                // -----------------------------------------
 
                 predictions.sort(
                     (a, b) =>
@@ -298,19 +1333,120 @@
                     predictions[0];
 
 
-                const percent =
-                    (
-                        best.probability *
-                        100
-                    ).toFixed(1);
+                // -----------------------------------------
+                // BEST RESULT
+                // -----------------------------------------
 
-
-                result.textContent =
+                bestClass.textContent =
                     best.className;
 
 
-                confidence.textContent =
-                    percent + "%";
+                bestPercent.textContent =
+                    (
+                        best.probability *
+                        100
+                    ).toFixed(1) +
+                    "%";
+
+
+                // -----------------------------------------
+                // UPDATE ALL BARS
+                // -----------------------------------------
+
+                predictions.forEach(
+                    prediction => {
+
+                        const index =
+                            CLASSES.indexOf(
+                                prediction.className
+                            );
+
+
+                        if (index === -1)
+                            return;
+
+
+                        const percent =
+                            prediction
+                            .probability *
+                            100;
+
+
+                        const bar =
+                            document.getElementById(
+                                "bar-" + index
+                            );
+
+
+                        const text =
+                            document.getElementById(
+                                "percent-" + index
+                            );
+
+
+                        const item =
+                            document.querySelector(
+                                `.prediction[data-index="${index}"]`
+                            );
+
+
+                        bar.style.width =
+                            percent + "%";
+
+
+                        text.textContent =
+                            percent.toFixed(1) +
+                            "%";
+
+
+                        if (
+                            index ===
+                            CLASSES.indexOf(
+                                best.className
+                            )
+                        ) {
+
+                            item.classList.add(
+                                "top"
+                            );
+
+                        } else {
+
+                            item.classList.remove(
+                                "top"
+                            );
+
+                        }
+
+                    }
+                );
+
+
+                // -----------------------------------------
+                // FPS
+                // -----------------------------------------
+
+                frames++;
+
+                const now =
+                    performance.now();
+
+
+                if (
+                    now -
+                    lastFrame >=
+                    1000
+                ) {
+
+                    fpsText.textContent =
+                        frames +
+                        " FPS";
+
+                    frames = 0;
+
+                    lastFrame = now;
+
+                }
 
 
             } catch (error) {
@@ -324,7 +1460,7 @@
 
 
             requestAnimationFrame(
-                detect
+                startDetection
             );
 
         }
@@ -332,4 +1468,5 @@
     </script>
 
 </body>
+
 </html>
