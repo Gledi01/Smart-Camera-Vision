@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -13,118 +14,117 @@
 
         body {
             margin: 0;
-            background: #101010;
+            background: #050505;
             color: white;
             font-family: Arial, sans-serif;
-        }
-
-        header {
-            padding: 18px;
-            text-align: center;
-            background: #181818;
+            min-height: 100vh;
         }
 
         h1 {
-            margin: 0;
+            text-align: center;
             font-size: 22px;
+            margin: 20px 0;
         }
 
         #camera {
             width: 100%;
-            max-height: 65vh;
+            height: 65vh;
             object-fit: cover;
-            display: block;
-            background: black;
+            display: none;
+            background: #111;
         }
 
-        .controls {
-            padding: 15px;
+        .panel {
+            padding: 20px;
         }
 
         button {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             border: 0;
-            border-radius: 10px;
-            background: #ffffff;
-            color: #111;
-            font-size: 16px;
+            border-radius: 12px;
+            background: white;
+            color: black;
+            font-size: 17px;
             font-weight: bold;
-            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.5;
         }
 
         #status {
             text-align: center;
-            margin: 12px 0;
+            margin: 15px 0;
             color: #aaa;
         }
 
-        #predictions {
-            padding: 0 15px 20px;
-        }
-
-        .prediction {
-            margin: 8px 0;
-        }
-
-        .label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-        }
-
-        .bar {
-            height: 8px;
-            background: #333;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .fill {
-            height: 100%;
-            background: #fff;
-            transition: width 0.15s;
-        }
-
-        .best {
-            font-size: 20px;
-            font-weight: bold;
+        #result {
             text-align: center;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: #1c1c1c;
-            border-radius: 10px;
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        #confidence {
+            font-size: 16px;
+            color: #aaa;
         }
     </style>
 </head>
 
 <body>
 
-<header>
     <h1>AI Object Detector</h1>
-</header>
 
-<video id="camera" autoplay playsinline></video>
+    <video
+        id="camera"
+        autoplay
+        muted
+        playsinline>
+    </video>
 
-<div class="controls">
-    <button id="startButton">
-        📷 Izinkan & Mulai Kamera
-    </button>
+    <div class="panel">
 
-    <div id="status">
-        Model belum dimuat
+        <button id="cameraButton">
+            📷 IZINKAN KAMERA
+        </button>
+
+        <div id="status">
+            Kamera belum diaktifkan
+        </div>
+
+        <div id="result"></div>
+        <div id="confidence"></div>
+
     </div>
 
-    <div id="predictions"></div>
-</div>
 
-<!-- TensorFlow.js -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <!-- =================================================
+         1. TensorFlow.js
+         HARUS DIMUAT TERLEBIH DAHULU
+    ================================================== -->
 
-<!-- Teachable Machine Image -->
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js">
+    </script>
 
-<script src="script.js"></script>
+
+    <!-- =================================================
+         2. Teachable Machine Image
+         HARUS SETELAH TensorFlow.js
+    ================================================== -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js">
+    </script>
+
+
+    <!-- =================================================
+         3. SCRIPT KITA
+    ================================================== -->
+
+    <script src="./script.js"></script>
 
 </body>
 </html>
