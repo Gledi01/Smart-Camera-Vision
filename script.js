@@ -1,193 +1,223 @@
-const MODEL_URL = "model/";
-
-let model;
-let stream;
-
 const camera = document.getElementById("camera");
-const startButton = document.getElementById("startButton");
-const statusText = document.getElementById("status");
-const predictionsBox = document.getElementById("predictions");
+const button = document.getElementById("cameraButton");
+const status = document.getElementById("status");
+const result = document.getElementById("result");
+const confidenceText = document.getElementById("confidence");
 
-startButton.addEventListener("click", startAI);
+let model = null;
+let stream = null;
 
-async function startAI() {
+
+// ======================================================
+// TOMBOL KAMERA
+// ======================================================
+
+button.addEventListener("click", startCamera);
+
+
+async function startCamera() {
+
     try {
-        startButton.disabled = true;
 
-        // =========================
-        // 1. CEK SECURE CONTEXT
-        // =========================
+        button.disabled = true;
 
-        if (!window.isSecureContext) {
-            throw new Error(
-                "Website tidak menggunakan HTTPS / secure context."
-            );
-        }
+        status.textContent =
+            "📷 Meminta izin kamera...";
+
+
+        // ==================================================
+        // CEK BROWSER
+        // ==================================================
 
         if (!navigator.mediaDevices) {
+
             throw new Error(
-                "navigator.mediaDevices tidak tersedia di browser."
+                "Browser tidak mendukung akses kamera."
             );
+
         }
 
-        statusText.textContent = "Memuat model AI...";
 
-        // =========================
-        // 2. LOAD MODEL
-        // =========================
+        // ==================================================
+        // PERMINTAAN IZIN KAMERA
+        // ==================================================
 
-        const modelURL = MODEL_URL + "model.json";
-        const metadataURL = MODEL_URL + "metadata.json";
+        stream =
+            await navigator.mediaDevices.getUserMedia({
 
-        model = await tmImage.load(
-            modelURL,
-            metadataURL
-        );
+                video: {
+                    facingMode: {
+                        ideal: "environment"
+                    },
 
-        statusText.textContent =
-            "Model berhasil dimuat. Meminta kamera...";
+                    width: {
+                        ideal: 1280
+                    },
 
-        // =========================
-        // 3. REQUEST CAMERA
-        // =========================
+                    height: {
+                        ideal: 720
+                    }
+                },
 
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-        });
+                audio: false
 
-        // =========================
-        // 4. TAMPILKAN CAMERA
-        // =========================
+            });
+
+
+        // ==================================================
+        // KAMERA BERHASIL
+        // ==================================================
 
         camera.srcObject = stream;
 
+        camera.style.display = "block";
+
         await camera.play();
 
-        statusText.textContent =
-            "🟢 Kamera aktif — AI sedang mendeteksi";
 
-        startButton.textContent =
-            "Kamera Aktif";
+        status.textContent =
+            "🟢 Kamera berhasil diaktifkan";
 
-        predict();
+
+        button.textContent =
+            "🟢 KAMERA AKTIF";
+
+
+        // ==================================================
+        // CEK TEACHABLE MACHINE
+        // ==================================================
+
+        if (typeof tmImage === "undefined") {
+
+            throw new Error(
+                "Library Teachable Machine gagal dimuat."
+            );
+
+        }
+
+
+        status.textContent =
+            "🧠 Memuat model AI...";
+
+
+        // ==================================================
+        // LOAD MODEL
+        // ==================================================
+
+        model = await tmImage.load(
+
+            "./model/model.json",
+
+            "./model/metadata.json"
+
+        );
+
+
+        status.textContent =
+            "🟢 AI siap mendeteksi";
+
+
+        // ==================================================
+        // MULAI DETEKSI
+        // ==================================================
+
+        detect();
+
 
     } catch (error) {
 
-        console.error("CAMERA ERROR:", error);
+        console.error(
+            "ERROR:",
+            error
+        );
 
-        startButton.disabled = false;
 
-        statusText.innerHTML =
-            "❌ <b>" +
-            error.name +
-            "</b><br>" +
+        button.disabled = false;
+
+
+        status.textContent =
+            "❌ " + error.name;
+
+
+        result.textContent =
             error.message;
 
-        /*
-        Error yang mungkin:
 
-        NotAllowedError
-        = izin kamera ditolak / diblokir
+        confidenceText.textContent =
+            "";
 
-        NotFoundError
-        = kamera tidak ditemukan
 
-        NotReadableError
-        = kamera sedang digunakan aplikasi lain
+        // Kalau kamera sempat aktif lalu model gagal
+        if (stream) {
 
-        OverconstrainedError
-        = konfigurasi kamera tidak cocok
+            stream.getTracks().forEach(
+                track => track.stop()
+            );
 
-        SecurityError
-        = akses kamera diblokir browser
+            stream = null;
 
-        TypeError
-        = mediaDevices tidak tersedia
-        */
+            camera.srcObject = null;
 
-        alert(
-            "Camera Error\n\n" +
-            error.name +
-            "\n\n" +
-            error.message
-        );
+            camera.style.display = "none";
+
+        }
+
     }
+
 }
 
 
-// ========================================
-// PREDICTION
-// ========================================
+// ======================================================
+// AI DETECTION
+// ======================================================
 
-async function predict() {
+async function detect() {
 
-    if (!model || !camera.srcObject) {
-        return;
-    }
+    if (!model) return;
+
 
     try {
 
         const predictions =
             await model.predict(camera);
 
+
+        // Urutkan confidence terbesar
         predictions.sort(
             (a, b) =>
                 b.probability - a.probability
         );
 
-        const best = predictions[0];
+
+        const best =
+            predictions[0];
+
 
         const confidence =
-            (best.probability * 100).toFixed(1);
+            (
+                best.probability * 100
+            ).toFixed(1);
 
-        let html = `
-            <div class="best">
-                ${best.className}
-                <br>
-                <small>${confidence}%</small>
-            </div>
-        `;
 
-        for (const prediction of predictions) {
+        result.textContent =
+            best.className;
 
-            const percent =
-                (prediction.probability * 100).toFixed(1);
 
-            html += `
-                <div class="prediction">
+        confidenceText.textContent =
+            confidence + "%";
 
-                    <div class="label">
-                        <span>
-                            ${prediction.className}
-                        </span>
-
-                        <span>
-                            ${percent}%
-                        </span>
-                    </div>
-
-                    <div class="bar">
-                        <div
-                            class="fill"
-                            style="width:${percent}%"
-                        ></div>
-                    </div>
-
-                </div>
-            `;
-        }
-
-        predictionsBox.innerHTML = html;
 
     } catch (error) {
 
         console.error(
-            "PREDICTION ERROR:",
+            "Prediction error:",
             error
         );
+
     }
 
-    requestAnimationFrame(predict);
+
+    requestAnimationFrame(detect);
+
 }
 
